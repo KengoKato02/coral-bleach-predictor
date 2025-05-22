@@ -9,6 +9,7 @@ setup(
     install_requires=[         
         "numpy",
         "requests",
+        "matplotlib",
     ],
     classifiers=[              
         "Programming Language :: Python :: 3",

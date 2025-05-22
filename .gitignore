@@ -1,5 +1,11 @@
+# Data
+data/noaa/raw_data
+data/bco_dmo/raw_data
+
 /env
 .env
 
 *.pyc
 __pycache__/
+
+coral_bleach_predictor.egg-info
