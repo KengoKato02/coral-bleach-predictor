@@ -13,9 +13,5 @@ def main():
     # Hardcoded example to test for first file
     data_noaa = load_noaa_data("data/noaa/raw_data/southwestern_cuba.txt")
 
-    
-
-
-
 if __name__ == '__main__':
     main()

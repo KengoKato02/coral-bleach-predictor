@@ -1,45 +1,39 @@
-import matplotlib.pyplot as plt
-import numpy as np
-
-# CAN DELETE:  Left this here for now in case for placeholder
-def evaluate_model(predictions, ground_truth):
+import pandas as pd
+        
+def create_noaa_date_column(df, year_col='YYYY', month_col='MM', day_col='DD', date_col='Date'):
     """
-    Evaluate model predictions by comparing to ground truth.
+    Concatenates year, month, and day columns into a single datetime column.
+
+    Parameters:
+        df (pd.DataFrame): The DataFrame containing the date columns.
+        year_col (str): The name of the year column. Default is 'YYYY'.
+        month_col (str): The name of the month column. Default is 'MM'.
+        day_col (str): The name of the day column. Default is 'DD'.
+        date_col (str): The name of the resulting datetime column. Default is 'Date'.
+
+    Returns:
+        None: Modifies the DataFrame in place by adding the new datetime column.
     """
-    correct = 0
-    total = len(ground_truth)
-    
-    for predicted, actual in zip(predictions, ground_truth):
-        if predicted == actual:
-            correct += 1
-    
-    accuracy = correct / total
-    return accuracy
+    df[date_col] = pd.to_datetime(
+        df[year_col].astype(str) + '-' +
+        df[month_col].astype(str).str.zfill(2) + '-' +
+        df[day_col].astype(str).str.zfill(2),
+        errors='coerce'
+    )
 
-# CAN DELETE:  Left this here for now in case for placeholder
-def visualize_data(data, title):
+def create_noaa_seasonal_column(df, season_col='Season'):
     """
-    Visualize the data using matplotlib 
+    Creates a season column based on the date column.
+
+    Parameters:
+        df (pd.DataFrame): The DataFrame containing the date column.
+        season_col (str): The name of the resulting season column. Default is 'Season'.
+
+    Returns:
+        None: Modifies the DataFrame in place by adding the new season column.
     """
-    
-    # First want to convert to numpy array because matplotlib
-    np_array = np.array(data)
-    grid_size = np_array.shape
-
-    # Choose a categorical colormap (tab10 covers 10 colors; adjust if needed)
-    cmap = plt.get_cmap('tab10')
-
-    plt.figure(figsize=(grid_size[1] * 0.5, grid_size[0] * 0.5)) 
-    plt.imshow(np_array, cmap=cmap, interpolation='none')
-
-    plt.grid(which='both', color='gray', linewidth=1, linestyle='-', alpha=0.5)
-    plt.xticks(np.arange(-0.5, grid_size[1], 1), [])
-    plt.yticks(np.arange(-0.5, grid_size[0], 1), [])
-    plt.gca().set_xticks(np.arange(-.5, grid_size[1], 1), minor=True)
-    plt.gca().set_yticks(np.arange(-.5, grid_size[0], 1), minor=True)
-    plt.gca().grid(which='minor', color='black', linewidth=1)
-    plt.gca().tick_params(which='both', bottom=False, left=False, labelbottom=False, labelleft=False)
-
-    plt.title(title)
-    plt.tight_layout()
-    plt.show()
+    df[season_col] =df['MM'].apply(lambda x: 
+        'Winter' if x in ['12', '01', '02'] else
+        'Spring' if x in ['03', '04', '05'] else
+        'Summer' if x in ['06', '07', '08'] else
+        'Fall')

@@ -10,6 +10,10 @@ setup(
         "numpy",
         "requests",
         "matplotlib",
+        "pandas",
+        "seaborn",
+        "scikit-learn",
+        "statsmodels",
     ],
     classifiers=[              
         "Programming Language :: Python :: 3",
