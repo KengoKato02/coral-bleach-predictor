@@ -164,6 +164,24 @@ body {
         transform: scale(0.85);
         transform-origin: top center;
     }
+    .risk-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #EAC75E;
+    }
+    
+    .risk-status {
+        color: #EAC75E;
+        font-size: 1.5rem;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+    
+    .risk-description {
+        font-size: 1.5rem;
+        font-weight: 400;
+    }    
+
 }
 
 .analysis-output {
