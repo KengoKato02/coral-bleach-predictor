@@ -1,4 +1,19 @@
 import pandas as pd
+
+def convert_to_numeric(df, columns):
+    """
+    Converts specified columns in a DataFrame to numeric type.
+
+    Parameters:
+        df (pd.DataFrame): The DataFrame containing the columns to convert.
+        columns (list): List of column names to convert to numeric.
+
+    Returns:
+        pd.DataFrame: The DataFrame with specified columns converted to numeric.
+    """
+    for col in columns:
+        df[col] = pd.to_numeric(df[col], errors='coerce')
+    return df
         
 def create_noaa_date_column(df, year_col='YYYY', month_col='MM', day_col='DD', date_col='Date'):
     """

@@ -37,12 +37,17 @@ def load_noaa_station_data(url):
             break
 
     # Match to the region based on the URL
-    if 'gbr' in url:
+    url = url.lower()
+    if any(x in url for x in ['gbr_far_northern', 'torres_strait', 'gbr_northern']):
         region = 'Great Barrier Reef'
-    elif any(x in url for x in ['samoas', 'cook', 'hawaiian']):
+    elif any(x in url for x in ['samoas', 'southern_cook_islands', 'hawaii']):
         region = 'Polynesia'
-    else:
+    elif any(x in url for x in ['nicaragua', 'panama_atlantic_east', 'jamaica']):
         region = 'Caribbean'
+    elif any(x in url for x in ['kerala', 'eastern_sri_lanka', 'gulf_of_kutch']):
+        region = 'South Asia'
+    else:
+        region = 'Unknown'
     
     # Extract latitude and longitude from each set
     for i, line in enumerate(lines):

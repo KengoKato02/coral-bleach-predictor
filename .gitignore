@@ -1,5 +1,7 @@
 # Data
 data/noaa/raw_data
+data/noaa/pulled_data/
+data/noaa/.DS_Store
 data/bco_dmo/raw_data
 
 /env
@@ -7,5 +9,7 @@ data/bco_dmo/raw_data
 
 *.pyc
 __pycache__/
+
+
 
 coral_bleach_predictor.egg-info
