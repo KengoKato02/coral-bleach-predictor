@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coral Reef Monitoring</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="hero-section">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>Coral Reef<br> Monitoring</h1>
+                    <p class="hero-description">Our system analyzes sea surface temperature data to provide early insights into thermal stress conditions affecting coral reefs worldwide.</p>
+                </div>
+                
+                <div class="stats-container">
+                    <div class="stat-item">
+                        <h2>50%</h2>
+                        <p>Coral reefs lost in the past 30 years</p>
+                    </div>
+                    <div class="stat-item">
+                        <h2>1°C</h2>
+                        <p>Temperature rise triggers bleaching</p>
+                    </div>
+                    <div class="stat-item">
+                        <h2>25%</h2>
+                        <p>Marine species depend on coral reefs</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="analysis-form">
+                <h2>Analyze temperature data to assess coral bleaching risk levels</h2>
+                
+                <div class="model-selector">
+                    <label>Select one of our AI models</label>
+                    <input type="text" placeholder="Choose model..." class="input-field">
+                </div>
+
+                <div class="temperature-inputs">
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label>Minimum Sea Surface Temperature (°C)</label>
+                            <p class="input-description">Daily minimum temperature in the monitoring region</p>
+                            <input type="number" class="input-field" placeholder="Enter minimum temperature">
+                        </div>
+                        <div class="input-group">
+                            <label>Maximum Sea Surface Temperature (°C)</label>
+                            <p class="input-description">Daily maximum temperature in the monitoring region</p>
+                            <input type="number" class="input-field" placeholder="Enter maximum temperature">
+                        </div>
+                    </div>
+
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label>SST at 90th Percentile Hotspot (°C)</label>
+                            <p class="input-description">Temperature at the most thermally-stressed location within the region</p>
+                            <input type="number" class="input-field" placeholder="Enter hotspot temperature">
+                        </div>
+                        <div class="input-group">
+                            <label>SST Anomaly at 90th Percentile (°C)</label>
+                            <p class="input-description">How much hotter (+) or cooler (-) than the long-term average for this location and season</p>
+                            <input type="number" class="input-field" placeholder="Enter temperature anomaly">
+                        </div>
+                    </div>
+                </div>
+
+                <button class="predict-button">PREDICT BLEACHING RISK</button>
+            </div>
+        </div>
+
+        <div class="analysis-output">
+            <div class="output-content">
+                <div class="risk-level">
+                    <span class="risk-number">1</span>
+                    <h3 class="risk-status">Bleaching WATCH</h3>
+                </div>
+                <p class="risk-description">Early thermal stress detected. Sensitive coral species may begin showing signs of stress.</p>
+                
+                <div class="ai-assistance">
+                    <h3 class="assistance-title">Need more information?</h3>
+                    <p class="assistance-description">Chat with our AI assistant to get detailed explanations, recommendations, and answers about this coral bleaching prediction.</p>
+                    <button class="ai-button">Ask AI Assistant</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="js/script.js"></script>
+</body>
+</html> 

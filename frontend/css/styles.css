@@ -1,0 +1,252 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Lato', sans-serif;
+}
+
+body {
+    background:
+        radial-gradient(38.9% 61.19% at 50.03% 38.81%, rgba(2, 13, 38, 0.00) 0%, rgba(2, 13, 38, 0.80) 100%),
+        url('../assets/bg.jpg') center/cover no-repeat;
+}
+
+.hero-section {
+    color: #ffffff;
+    display: flex;
+    justify-content: space-around;
+    padding-top: 2rem;
+    padding-bottom: 3.375rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+
+.hero-content {
+    max-width: 35rem;
+}
+
+.hero-text {
+    margin-top: 7rem;
+}
+
+.hero-text h1 {
+    font-size: 4rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+}
+
+.hero-description {
+    font-size: 1.25rem;
+    margin-bottom: 3rem;
+    opacity: 0.8;
+}
+
+.stats-container {
+    display: flex;
+    gap: 3rem;
+    margin-top: 4rem;
+}
+
+.stat-item h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.stat-item p {
+    font-size: 1rem;
+    opacity: 0.8;
+    max-width: 8rem;
+}
+
+.analysis-form {
+    border-radius: 1.5625rem;
+    border: 1px solid rgba(255, 255, 255, 0.20);
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(8.5px);
+    width: 42.3125rem;
+    height: 50rem;
+    padding: 3rem 2.5rem 2.5rem 2.5rem;
+    color: #ffffff;
+    position: relative;
+}
+
+.analysis-form h2 {
+    font-size: 2.125rem;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 3rem;
+    max-width: 35rem;
+    text-align: center;
+
+}
+
+.model-selector {
+    margin-bottom: 3rem;
+}
+
+.model-selector label {
+    display: block;
+    font-size: 1.125rem;
+    margin-bottom: 0.5rem;
+}
+
+.temperature-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.input-row {
+    display: flex;
+    gap: 2.1875rem;
+}
+
+.input-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.input-group label {
+    display: block;
+    font-size: 1.125rem;
+    margin-bottom: 0.5rem;
+}
+
+.input-description {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: auto;
+}
+
+.input-field {
+    width: 100%;
+    height: 3.25rem;
+    border-radius: 0.625rem;
+    border: 1px solid rgba(255, 255, 255, 0.30);
+    background: rgba(255, 255, 255, 0.50);
+    backdrop-filter: blur(5px);
+    padding: 0 1rem;
+    font-size: 1rem;
+    color: #2C3E50;
+    margin-top: 0.5rem;
+}
+
+.input-field::placeholder {
+    color: rgba(44, 62, 80, 0.6);
+}
+
+.predict-button {
+    width: 17.4375rem;
+    height: 3.25rem;
+    border-radius: 0.625rem;
+    background: #BB4A61;
+    border: none;
+    color: #ffffff;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    position: absolute;
+    right: 2.5rem;
+    bottom: 1.5rem;
+}
+
+.predict-button:hover {
+    background: #a13e52;
+}
+
+@media screen and (max-width: 1550px) {
+    .analysis-form {
+        transform: scale(0.85);
+        transform-origin: top center;
+    }
+}
+
+.analysis-output {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 75%;
+    height: 30rem;
+    color: #ffffff;
+    border-radius: 1.5625rem;
+    border: 1px solid rgba(255, 255, 255, 0.20);
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(8.5px);
+    margin: 5rem auto;
+    position: relative;
+}
+
+.analysis-output::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 5px;
+    right: 5px;
+    height: 10px;
+    background: #EAC75E;
+    border-radius: 1.5625rem 1.5625rem 0 0;
+}
+
+.output-content {
+    text-align: center;
+    max-width: 80%;
+}
+
+.output-content>* {
+    margin-top: 1rem;
+}
+
+.output-content>*>* {
+    margin-top: 0.5rem;
+}
+
+.risk-level {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.risk-number {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #EAC75E;
+}
+
+.risk-status {
+    color: #EAC75E;
+    font-size: 2rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.risk-description {
+    font-size: 2rem;
+    font-weight: 400;
+}
+
+.assistance-title {
+    margin-top: 4rem;
+    color: #EAC75E;
+    font-weight: 400;
+    font-size: 1.5rem;
+}
+
+.ai-button {
+    width: 15rem;
+    height: 3rem;
+    font-size: 1.25rem;
+    border-radius: 0.625rem;
+    background: #EAC75E;
+    border: none;
+    color: #020C23;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    margin: 1.5rem auto;
+    display: block;
+}
