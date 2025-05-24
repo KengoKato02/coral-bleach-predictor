@@ -167,6 +167,7 @@ body {
 }
 
 .analysis-output {
+    --risk-color: #EAC75E;  /* Default color, will be updated by JS */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -179,6 +180,9 @@ body {
     backdrop-filter: blur(8.5px);
     margin: 5rem auto;
     position: relative;
+    visibility: hidden;  /* Initially hidden but space is reserved */
+    opacity: 0;
+    transition: visibility 0.3s, opacity 0.3s ease-in-out;
 }
 
 .analysis-output::before {
@@ -188,7 +192,7 @@ body {
     left: 5px;
     right: 5px;
     height: 10px;
-    background: #EAC75E;
+    background: var(--risk-color);
     border-radius: 1.5625rem 1.5625rem 0 0;
 }
 
@@ -231,7 +235,7 @@ body {
 
 .assistance-title {
     margin-top: 4rem;
-    color: #EAC75E;
+    color: var(--risk-color);
     font-weight: 400;
     font-size: 1.5rem;
 }
@@ -241,7 +245,7 @@ body {
     height: 3rem;
     font-size: 1.25rem;
     border-radius: 0.625rem;
-    background: #EAC75E;
+    background: white;
     border: none;
     color: #020C23;
     cursor: pointer;

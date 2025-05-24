@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const riskNumber = document.querySelector('.risk-number');
     const riskStatus = document.querySelector('.risk-status');
     const riskDescription = document.querySelector('.risk-description');
+    const assistanceTitle = document.querySelector('.assistance-title');
 
     // Risk level color mapping
     const riskColors = {
@@ -13,6 +14,15 @@ document.addEventListener('DOMContentLoaded', () => {
         2: '#C66238', // Orange for Warning
         3: '#F44336', // Red for High Risk
         4: '#B71C1C'  // Dark Red for Critical
+    };
+
+    // Function to update all risk-related colors
+    const updateRiskColors = (level) => {
+        const color = riskColors[level];
+        riskNumber.style.color = color;
+        riskStatus.style.color = color;
+        assistanceTitle.style.color = color;
+        outputSection.style.setProperty('--risk-color', color);
     };
 
     predictButton.addEventListener('click', async (e) => {
@@ -34,7 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // Show loading state
             predictButton.disabled = true;
             predictButton.textContent = 'Analyzing...';
-            outputSection.style.opacity = '0.5';
             
             // Call backend API
             const response = await fetch('http://localhost:8000/predict', {
@@ -61,18 +70,12 @@ document.addEventListener('DOMContentLoaded', () => {
             riskStatus.textContent = data.risk_status;
             riskDescription.textContent = data.description;
 
-            // Update colors based on risk level
-            outputSection.style.borderTopColor = riskColors[data.baa_level];
-            riskNumber.style.color = riskColors[data.baa_level];
-            riskStatus.style.color = riskColors[data.baa_level];
+            // Update all risk-related colors
+            updateRiskColors(data.baa_level);
             
-            // Show output section with animation
-            outputSection.style.display = 'flex';
-            outputSection.style.opacity = '0';
-            setTimeout(() => {
-                outputSection.style.opacity = '1';
-                outputSection.style.transition = 'opacity 0.5s ease-in-out';
-            }, 100);
+            // Show the output section
+            outputSection.style.visibility = 'visible';
+            outputSection.style.opacity = '1';
 
             // Scroll to output section
             outputSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -84,7 +87,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // Reset button state
             predictButton.disabled = false;
             predictButton.textContent = 'PREDICT BLEACHING RISK';
-            outputSection.style.opacity = '1';
         }
     });
 
