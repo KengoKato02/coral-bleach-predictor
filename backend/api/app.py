@@ -20,19 +20,19 @@ RISK_LEVELS = {
     },
     1: {
         "status": "Bleaching Watch",
-        "description": "Early thermal stress detected. Sensitive coral species may begin showing signs of stress."
+        "description": "Early thermal stress detected in monitoring data. Sensitive coral species should be monitored closely for initial stress responses."
     },
     2: {
         "status": "Bleaching Warning",
-        "description": "Based on your temperature data analysis, moderate thermal stress has been detected. Sensitive coral species in this region are likely to begin showing signs of bleaching within the next 5-7 days."
+        "description": "Moderate thermal stress is affecting coral health. Bleaching may begin in sensitive species within the next few days."
     },
     3: {
         "status": "High Risk Alert",
-        "description": "Severe thermal stress. Widespread bleaching expected across multiple coral species."
+        "description": "High thermal stress detected across the reef system. Widespread coral bleaching is expected to occur soon."
     },
     4: {
         "status": "Critical Emergency",
-        "description": "Extreme thermal stress. Massive coral mortality expected. Immediate conservation action required."
+        "description": "Critical thermal stress levels reached. Severe coral bleaching and potential mortality are imminent without immediate intervention."
     }
 }
 
