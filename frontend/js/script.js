@@ -6,6 +6,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const riskStatus = document.querySelector('.risk-status');
     const riskDescription = document.querySelector('.risk-description');
     const assistanceTitle = document.querySelector('.assistance-title');
+    
+    // Chat elements
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const chatActionButton = document.getElementById('chatActionButton');
+    const aiButton = document.querySelector('.ai-button');
+
+    // Controller for cancelling ongoing requests
+    let abortController = null;
 
     // Risk level color mapping
     const riskColors = {
@@ -13,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
         1: '#EAC75E', // Yellow for Watch
         2: '#C66238', // Orange for Warning
         3: '#F44336', // Red for High Risk
-        4: '#B71C1C'  // Dark Red for Critical
+        4: '#8c140a' // Dark red for Critical
     };
 
     // Function to update all risk-related colors
@@ -24,6 +33,134 @@ document.addEventListener('DOMContentLoaded', () => {
         assistanceTitle.style.color = color;
         outputSection.style.setProperty('--risk-color', color);
     };
+
+    // Function to create and append a message to the chat
+    const appendMessage = (text, isUser = false) => {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat-message ${isUser ? 'user-message' : 'ai-message'}`;
+        messageDiv.innerHTML = `
+            <div class="message-content">
+                <span class="message-text">${text}</span>
+            </div>
+        `;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return messageDiv;
+    };
+
+    // Function to toggle button state
+    const toggleButtonState = (isGenerating) => {
+        chatActionButton.textContent = isGenerating ? 'Cancel' : 'Send';
+        chatInput.disabled = isGenerating;
+    };
+
+    // Function to handle chat action (send/cancel)
+    const handleChatAction = async () => {
+        // If currently generating, cancel the request
+        if (abortController) {
+            abortController.abort();
+            return;
+        }
+
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        // Clear input
+        chatInput.value = '';
+
+        // Add user message to chat
+        appendMessage(message, true);
+
+        try {
+            // Create new AbortController for this request
+            abortController = new AbortController();
+            
+            // Show cancel state
+            toggleButtonState(true);
+
+            // Create a message container for the AI response
+            const aiMessageDiv = appendMessage('', false);
+            const aiMessageText = aiMessageDiv.querySelector('.message-text');
+            let fullResponse = '';
+
+            // Call your local LLM API with streaming
+            const response = await fetch('http://localhost:8000/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: message
+                }),
+                signal: abortController.signal
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to get response');
+            }
+
+            // Handle the stream
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(line.slice(6));
+                            if (data.error) {
+                                aiMessageText.textContent = `Error: ${data.error}`;
+                                throw new Error(data.error);
+                            }
+                            if (data.content) {
+                                fullResponse += data.content;
+                                aiMessageText.textContent = fullResponse;
+                                chatMessages.scrollTop = chatMessages.scrollHeight;
+                            }
+                        } catch (e) {
+                            console.error('Error parsing SSE data:', e);
+                        }
+                    }
+                }
+            }
+
+        } catch (error) {
+            console.error('Error:', error);
+            if (error.name === 'AbortError') {
+                appendMessage('Response generation was cancelled.');
+            } else {
+                appendMessage('Sorry, I encountered an error. Please try again.');
+            }
+        } finally {
+            // Reset button state and clear abort controller
+            toggleButtonState(false);
+            abortController = null;
+        }
+    };
+
+    // Event listeners for chat
+    chatActionButton.addEventListener('click', handleChatAction);
+    
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleChatAction();
+        }
+    });
+
+    // Connect "Ask AI Assistant" button to chat
+    aiButton.addEventListener('click', () => {
+        chatInput.focus();
+        const currentRisk = riskStatus.textContent;
+        const currentDescription = riskDescription.textContent;
+        chatInput.value = `Can you explain more about the "${currentRisk}" status? The system says: "${currentDescription}"`;
+    });
 
     predictButton.addEventListener('click', async (e) => {
         e.preventDefault();

@@ -1,7 +1,8 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, Response
 from flask_cors import CORS
 import requests
 import re
+import json
 
 # Configuration constants
 LLAMA_API_URL = "http://localhost:11434/api/chat"
@@ -182,6 +183,69 @@ def predict_bleaching():
         app.logger.error(f'Unexpected error: {str(e)}')
         return jsonify({'error': 'Internal server error'}), 500
 
+@app.route('/chat', methods=['POST'])
+def chat():
+    """Handle chat messages with the LLM model"""
+    try:
+        data = request.get_json()
+        
+        if not request.is_json:
+            return jsonify({'error': 'Content-Type must be application/json'}), 400
+
+        if 'message' not in data:
+            return jsonify({'error': 'Missing message field'}), 400
+
+        def generate():
+            try:
+                response = requests.post(
+                    LLAMA_API_URL,
+                    json={
+                        "model": LLM_MODEL,
+                        "messages": [
+                            {
+                                "role": "system",
+                                "content": """You are a coral reef monitoring assistant. You help users understand coral bleaching risks, 
+                                interpret temperature data, and provide recommendations for coral reef protection. Be concise but informative."""
+                            },
+                            {
+                                "role": "user",
+                                "content": data['message']
+                            }
+                        ],
+                        "stream": True,
+                        "temperature": 0.7
+                    },
+                    stream=True,
+                )
+
+                if response.status_code != 200:
+                    yield f"data: {json.dumps({'error': f'Error calling model {LLM_MODEL}'})}\n\n"
+                    return
+
+                for line in response.iter_lines():
+                    if line:
+                        try:
+                            json_response = json.loads(line.decode('utf-8'))
+                            if json_response.get('message', {}).get('content'):
+                                content = json_response['message']['content']
+                                yield f"data: {json.dumps({'content': content})}\n\n"
+                        except json.JSONDecodeError:
+                            continue
+
+            except requests.exceptions.ConnectionError:
+                yield f"data: {json.dumps({'error': f'Could not connect to model {LLM_MODEL}. Make sure it is running on port 11434'})}\n\n"
+            except requests.exceptions.Timeout:
+                yield f"data: {json.dumps({'error': f'Model {LLM_MODEL} request timed out'})}\n\n"
+            except Exception as e:
+                app.logger.error(f'Unexpected error in chat: {str(e)}')
+                yield f"data: {json.dumps({'error': 'Internal server error'})}\n\n"
+
+        return Response(generate(), mimetype='text/event-stream')
+
+    except Exception as e:
+        app.logger.error(f'Unexpected error in chat: {str(e)}')
+        return jsonify({'error': 'Internal server error'}), 500
+
 @app.errorhandler(404)
 def not_found(e):
     return jsonify({
@@ -190,6 +254,7 @@ def not_found(e):
         'available_endpoints': {
             '/': 'GET - Home page',
             '/predict': 'POST - Predict coral bleaching risk',
+            '/chat': 'POST - Chat with the AI assistant'
         }
     }), 404
 
