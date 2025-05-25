@@ -163,6 +163,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Connect "Ask AI Assistant" button to chat
     aiButton.addEventListener('click', async () => {
+        const chatContainer = document.querySelector('.chat-container');
+        chatContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
         // Get all form values
         const minSST = form.querySelector('input[placeholder="Enter minimum temperature"]').value;
         const maxSST = form.querySelector('input[placeholder="Enter maximum temperature"]').value;
@@ -174,14 +177,77 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentDescription = riskDescription.textContent;
         const riskLevel = riskNumber.textContent;
 
-        // Construct initial greeting message
-        const initialMessage = `Hello! I am your AI coral reef assistant. I see you've provided the following temperature data:\n\n• Minimum Temperature: ${minSST}°C\n• Maximum Temperature: ${maxSST}°C\n• Hotspot Temperature: ${hotspotSST}°C\n• Temperature Anomaly: ${anomalySST}°C\n\nBased on this data, I've determined a Risk Level ${riskLevel} - "**${currentRisk}**". This means: ${currentDescription}\n\nHow can I help you understand this assessment better?`;
+        try {
+            // Create new AbortController for this request
+            abortController = new AbortController();
 
-        // Send the initial message
-        appendMessage(initialMessage, false);
+            // Create a message container for the AI response
+            const aiMessageDiv = appendMessage('', false);
+            const aiMessageText = aiMessageDiv.querySelector('.message-text');
+            let fullResponse = '';
 
-        // Focus the chat input for user's response
-        chatInput.focus();
+            // Call the init-chat endpoint
+            const response = await fetch('http://localhost:8000/init-chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    min_sst: minSST,
+                    max_sst: maxSST,
+                    hotspot_sst: hotspotSST,
+                    sst_anomaly: anomalySST,
+                    risk_level: riskLevel,
+                    risk_status: currentRisk,
+                    description: currentDescription
+                }),
+                signal: abortController.signal
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to get initial greeting');
+            }
+
+            // Handle the stream
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        try {
+                            const data = JSON.parse(line.slice(6));
+                            if (data.error) {
+                                aiMessageText.textContent = `Error: ${data.error}`;
+                                throw new Error(data.error);
+                            }
+                            if (data.content) {
+                                fullResponse += data.content;
+                                aiMessageText.innerHTML = parseMarkdown(fullResponse);
+                                chatMessages.scrollTop = chatMessages.scrollHeight;
+                            }
+                        } catch (e) {
+                            console.error('Error parsing SSE data:', e);
+                        }
+                    }
+                }
+            }
+
+        } catch (error) {
+            console.error('Error:', error);
+            appendMessage('Sorry, I encountered an error starting the conversation. Please try again.');
+        } finally {
+            // Reset abort controller
+            abortController = null;
+            // Focus the chat input for user's response
+            chatInput.focus();
+        }
     });
 
     predictButton.addEventListener('click', async (e) => {

@@ -202,8 +202,7 @@ def chat():
                     {
                         "role": "system",
                         "content": """You are a coral reef monitoring assistant. You help users understand coral bleaching risks, 
-                        interpret temperature data, and provide recommendations for coral reef protection. You have access to the 
-                        conversation history and can reference previous temperature data and risk assessments. Be concise but informative."""
+                        interpret temperature data, and provide recommendations for coral reef protection. Be concise but informative."""
                     }
                 ]
                 
@@ -254,6 +253,85 @@ def chat():
 
     except Exception as e:
         app.logger.error(f'Unexpected error in chat: {str(e)}')
+        return jsonify({'error': 'Internal server error'}), 500
+
+@app.route('/init-chat', methods=['POST'])
+def init_chat():
+    """Generate initial greeting message based on analysis data"""
+    try:
+        data = request.get_json()
+        
+        if not request.is_json:
+            return jsonify({'error': 'Content-Type must be application/json'}), 400
+
+        required_fields = ['min_sst', 'max_sst', 'hotspot_sst', 'sst_anomaly', 'risk_level', 'risk_status', 'description']
+        if not all(field in data for field in required_fields):
+            return jsonify({'error': 'Missing required fields', 'required_fields': required_fields}), 400
+
+        def generate():
+            try:
+                response = requests.post(
+                    LLAMA_API_URL,
+                    json={
+                        "model": LLM_MODEL,
+                        "messages": [
+                            {
+                                "role": "system",
+                                "content": """You are a coral reef monitoring assistant. Respond ONLY with a greeting message that follows this exact structure:
+
+                                1. Start with "Hello! I am your AI coral reef assistant."
+                                2. Follow with "I see these temperature readings:"
+                                3. List the temperatures as bullet points
+                                4. State the risk level and status (make the status bold with **text**)
+                                5. Add the description
+                                6. End with a short question about how you can help
+
+                                DO NOT add any additional text, quotes, or commentary about the greeting itself. Start directly with "Hello!"."""
+                            },
+                            {
+                                "role": "user",
+                                "content": f"""Create an initial greeting with these values:
+                                - Minimum Temperature: {data['min_sst']}°C
+                                - Maximum Temperature: {data['max_sst']}°C
+                                - Hotspot Temperature: {data['hotspot_sst']}°C
+                                - Temperature Anomaly: {data['sst_anomaly']}°C
+                                - Risk Level: {data['risk_level']}
+                                - Risk Status: {data['risk_status']}
+                                - Description: {data['description']}"""
+                            }
+                        ],
+                        "stream": True,
+                        "temperature": 0.7
+                    },
+                    stream=True,
+                )
+
+                if response.status_code != 200:
+                    yield f"data: {json.dumps({'error': f'Error calling model {LLM_MODEL}'})}\n\n"
+                    return
+
+                for line in response.iter_lines():
+                    if line:
+                        try:
+                            json_response = json.loads(line.decode('utf-8'))
+                            if json_response.get('message', {}).get('content'):
+                                content = json_response['message']['content']
+                                yield f"data: {json.dumps({'content': content})}\n\n"
+                        except json.JSONDecodeError:
+                            continue
+
+            except requests.exceptions.ConnectionError:
+                yield f"data: {json.dumps({'error': f'Could not connect to model {LLM_MODEL}. Make sure it is running on port 11434'})}\n\n"
+            except requests.exceptions.Timeout:
+                yield f"data: {json.dumps({'error': f'Model {LLM_MODEL} request timed out'})}\n\n"
+            except Exception as e:
+                app.logger.error(f'Unexpected error in init chat: {str(e)}')
+                yield f"data: {json.dumps({'error': 'Internal server error'})}\n\n"
+
+        return Response(generate(), mimetype='text/event-stream')
+
+    except Exception as e:
+        app.logger.error(f'Unexpected error in init chat: {str(e)}')
         return jsonify({'error': 'Internal server error'}), 500
 
 @app.errorhandler(404)
