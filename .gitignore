@@ -1,0 +1,3 @@
+# Large model files
+backend/models/coral_bleaching_predictor.pkl
+backend/models/scaler.pkl 
