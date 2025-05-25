@@ -250,80 +250,83 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    predictButton.addEventListener('click', async (e) => {
-        e.preventDefault();
+    // Function to collect form data
+    const collectFormData = () => {
+        const modelSelect = document.getElementById('modelSelect');
+        const regionSelect = document.getElementById('regionSelect');
+        const dateSelect = document.getElementById('dateSelect');
+        
+        return {
+            model: modelSelect.value,  // Add model selection
+            region: regionSelect.value,
+            date: dateSelect.value,
+            min_sst: parseFloat(form.querySelector('input[placeholder="Enter minimum temperature"]').value),
+            max_sst: parseFloat(form.querySelector('input[placeholder="Enter maximum temperature"]').value),
+            hotspot_sst: parseFloat(form.querySelector('input[placeholder="Enter hotspot temperature"]').value),
+            sst_anomaly: parseFloat(form.querySelector('input[placeholder="Enter temperature anomaly"]').value),
+            dhw_90th: parseFloat(form.querySelector('input[placeholder="Enter DHW value"]').value)
+        };
+    };
 
-        // Get values from form
-        const region = form.querySelector('#regionSelect').value;
-        const date = form.querySelector('#dateSelect').value;
-        const minSST = parseFloat(form.querySelector('input[placeholder="Enter minimum temperature"]').value);
-        const maxSST = parseFloat(form.querySelector('input[placeholder="Enter maximum temperature"]').value);
-        const hotspotSST = parseFloat(form.querySelector('input[placeholder="Enter hotspot temperature"]').value);
-        const anomalySST = parseFloat(form.querySelector('input[placeholder="Enter temperature anomaly"]').value);
-        const dhwValue = parseFloat(form.querySelector('input[placeholder="Enter DHW value"]').value);
+    // Function to validate form data
+    const validateFormData = (data) => {
+        if (!data.region) return 'Please select a region';
+        if (!data.date) return 'Please select a date';
+        if (isNaN(data.min_sst)) return 'Please enter minimum SST';
+        if (isNaN(data.max_sst)) return 'Please enter maximum SST';
+        if (isNaN(data.hotspot_sst)) return 'Please enter hotspot SST';
+        if (isNaN(data.sst_anomaly)) return 'Please enter SST anomaly';
+        if (isNaN(data.dhw_90th)) return 'Please enter DHW value';
+        return null;
+    };
 
-        // Validate inputs
-        if (!region) {
-            alert('Please select a region');
-            return;
-        }
-
-        if (!date) {
-            alert('Please select a date');
-            return;
-        }
-
-        if (isNaN(minSST) || isNaN(maxSST) || isNaN(hotspotSST) || isNaN(anomalySST) || isNaN(dhwValue)) {
-            alert('Please fill in all temperature values with valid numbers');
+    // Handle predict button click
+    predictButton.addEventListener('click', async () => {
+        const data = collectFormData();
+        const validationError = validateFormData(data);
+        
+        if (validationError) {
+            alert(validationError);
             return;
         }
 
         try {
             // Show loading state
             predictButton.disabled = true;
-            predictButton.textContent = 'Analyzing...';
-            
-            // Call backend API
+            predictButton.textContent = 'ANALYZING...';
+
             const response = await fetch('http://localhost:8000/predict', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    region: region,
-                    date: date,
-                    min_sst: minSST,
-                    max_sst: maxSST,
-                    hotspot_sst: hotspotSST,
-                    sst_anomaly: anomalySST,
-                    dhw_90th: dhwValue
-                })
+                body: JSON.stringify(data)
             });
 
             if (!response.ok) {
                 throw new Error('Failed to get prediction');
             }
 
-            const data = await response.json();
+            const result = await response.json();
             
-            // Update UI with prediction
-            riskNumber.textContent = data.baa_level;
-            riskStatus.textContent = data.risk_status;
-            riskDescription.textContent = data.description;
-
-            // Update all risk-related colors
-            updateRiskColors(data.baa_level);
+            // Update the output section
+            riskNumber.textContent = result.risk_level;
+            riskStatus.textContent = result.status;
+            riskDescription.textContent = result.description;
+            
+            // Update colors based on risk level
+            updateRiskColors(result.risk_level);
             
             // Show the output section
             outputSection.style.visibility = 'visible';
             outputSection.style.opacity = '1';
-
+            
             // Scroll to output section
-            outputSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            outputSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
         } catch (error) {
             console.error('Error:', error);
-            alert('Error getting prediction. Please try again.');
+            alert('Failed to get prediction. Please try again.');
         } finally {
             // Reset button state
             predictButton.disabled = false;

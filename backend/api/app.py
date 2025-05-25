@@ -4,6 +4,15 @@ import requests
 import re
 import json
 from datetime import datetime
+import joblib
+import numpy as np
+import os
+import pandas as pd
+
+# Load the Part 1 models
+MODEL_DIR = os.path.join(os.path.dirname(__file__), '../models')
+coral_model = joblib.load(os.path.join(MODEL_DIR, 'coral_bleaching_predictor.pkl'))
+scaler = joblib.load(os.path.join(MODEL_DIR, 'scaler.pkl'))
 
 # Configuration constants
 LLAMA_API_URL = "http://localhost:11434/api/chat"
@@ -189,6 +198,115 @@ def extract_baa_level(llama_response):
 
     return baa_level, None, None
 
+def get_part1_prediction(data):
+    """Get prediction from the Part 1 model"""
+    try:
+        print("\n=== Starting prediction process ===")
+        print("1. Raw input data:", json.dumps(data, indent=2))
+        
+        # Extract date components
+        date_obj = datetime.strptime(data['date'], '%Y-%m-%d')
+        year = date_obj.year
+        month = date_obj.month
+        day = date_obj.day
+        
+        # Determine season
+        seasons = {
+            'Fall': [9, 10, 11],
+            'Spring': [3, 4, 5],
+            'Summer': [6, 7, 8],
+            'Winter': [12, 1, 2]
+        }
+        current_season = next(season for season, months in seasons.items() if month in months)
+        season_features = {f'Season_{s}': 1 if s == current_season else 0 for s in seasons.keys()}
+        
+        print("\n2. Date components:")
+        print(f"Year: {year}, Month: {month}, Day: {day}, Season: {current_season}")
+        
+        # Create region encoding (one-hot)
+        regions = ['Caribbean', 'Great Barrier Reef', 'Polynesia', 'South Asia']
+        region_features = {f'Region_{r}': 1 if r == data['region'] else 0 for r in regions}
+        print("\n3. Region encoding:")
+        print(json.dumps(region_features, indent=2))
+        
+        # Calculate derived features
+        ssta_dhw_interaction = data['sst_anomaly'] * data['dhw_90th']
+        ssta_squared = data['sst_anomaly'] ** 2
+        ssta_above_threshold = 1 if data['sst_anomaly'] > 0 else 0
+        
+        print("\n4. Calculated features:")
+        print(f"SSTA_DHW_interaction: {ssta_dhw_interaction}")
+        print(f"SSTA_squared: {ssta_squared}")
+        print(f"SSTA_above_threshold: {ssta_above_threshold}")
+        
+        # Create features in exact order as model expects
+        features = pd.DataFrame([{
+            # Exact order from model.feature_names_in_
+            'YYYY': year,
+            'MM': month,
+            'DD': day,
+            'SST_MIN': data['min_sst'],
+            'SST_MAX': data['max_sst'],
+            'SST@90th_HS': data['hotspot_sst'],
+            'SSTA@90th_HS': data['sst_anomaly'],
+            '90th_HS>0': data['hotspot_sst'],
+            'DHW_from_90th_HS>1': data['dhw_90th'],
+            'SST_MIN_lag_back_4': data['min_sst'],
+            'SST_MAX_lag_back_4': data['max_sst'],
+            'SST@90th_HS_lag_back_4': data['hotspot_sst'],
+            'SSTA@90th_HS_lag_back_3': data['sst_anomaly'],
+            '90th_HS>0_lag_back_4': data['hotspot_sst'],
+            'DHW_from_90th_HS>1_lag_forward_29': data['dhw_90th'],
+            'SSTA_above_threshold': ssta_above_threshold,
+            '90th_HS_above_0': 1 if data['hotspot_sst'] > 0 else 0,
+            'SSTA_squared': ssta_squared,
+            'SSTA_DHW_interaction': ssta_dhw_interaction,
+            'Season_Fall': season_features['Season_Fall'],
+            'Season_Spring': season_features['Season_Spring'],
+            'Season_Summer': season_features['Season_Summer'],
+            'Season_Winter': season_features['Season_Winter'],
+            'Region_Caribbean': region_features['Region_Caribbean'],
+            'Region_Great Barrier Reef': region_features['Region_Great Barrier Reef'],
+            'Region_Polynesia': region_features['Region_Polynesia'],
+            'Region_South Asia': region_features['Region_South Asia']
+        }])
+        
+        print("\n5. Features DataFrame:")
+        print(features.to_string())
+        print("\nFeature names in order:", list(features.columns))
+        
+        print("\n6. Model's expected feature names:")
+        print(coral_model.feature_names_in_ if hasattr(coral_model, 'feature_names_in_') else "Feature names not available in model")
+        
+        # Scale the features
+        scaled_features = scaler.transform(features)
+        print("\n7. Scaled features shape:", scaled_features.shape)
+        print("Scaled features:")
+        print(scaled_features)
+        
+        # Get prediction
+        prediction = coral_model.predict(scaled_features)[0]
+        print("\n8. Raw model prediction:", prediction)
+        
+        # Ensure prediction is in valid range
+        prediction = max(0, min(4, int(round(prediction))))
+        print("9. Final adjusted prediction:", prediction)
+        print("\n=== Prediction process completed ===\n")
+        
+        return prediction, None, None
+        
+    except Exception as e:
+        import traceback
+        print("\n=== Error in prediction process ===")
+        print("Error type:", type(e).__name__)
+        print("Error message:", str(e))
+        print("\nFull traceback:")
+        print(traceback.format_exc())
+        print("=== Error details end ===\n")
+        return None, {
+            'error': f'Error using Part 1 model: {str(e)}\nTraceback: {traceback.format_exc()}'
+        }, 500
+
 @app.route('/')
 def serve_frontend():
     return send_from_directory(app.static_folder, 'index.html')
@@ -200,37 +318,43 @@ def serve_static(path):
 
 @app.route('/predict', methods=['POST'])
 def predict_bleaching():
-    """Predict coral bleaching risk based on temperature data"""
-    try:
-        data = request.get_json()
-        
-        # Validate input data
-        validation_error = validate_temperature_data(data)
-        if validation_error:
-            return jsonify(validation_error[0]), validation_error[1]
-
-        # Get prediction from llama
+    """Predict coral bleaching risk"""
+    data = request.json
+    print("Received data:", data)  # Debug print
+    
+    # Validate input data
+    validation_error = validate_temperature_data(data)
+    if validation_error:
+        print("Validation error:", validation_error)  # Debug print
+        return jsonify(validation_error[0]), validation_error[1]
+    
+    # Get selected model
+    model_type = data.get('model', 'part1')  # Default to part1 if not specified
+    print("Selected model:", model_type)  # Debug print
+    
+    # Get prediction based on model type
+    if model_type == 'part1':
+        baa_level, error, status_code = get_part1_prediction(data)
+    else:  # llama3.1
         llama_response, error, status_code = get_llama_prediction(data)
         if error:
+            print("LLaMA error:", error)  # Debug print
             return jsonify(error), status_code
-
-        # Extract BAA level
         baa_level, error, status_code = extract_baa_level(llama_response)
-        if error:
-            return jsonify(error), status_code
-
-        # Get risk information
-        risk_info = RISK_LEVELS[baa_level]
-        
-        return jsonify({
-            'baa_level': baa_level,
-            'risk_status': risk_info['status'],
-            'description': risk_info['description']
-        })
-
-    except Exception as e:
-        app.logger.error(f'Unexpected error: {str(e)}')
-        return jsonify({'error': 'Internal server error'}), 500
+    
+    if error:
+        print("Prediction error:", error)  # Debug print
+        return jsonify(error), status_code
+    
+    # Get risk information for the BAA level
+    risk_info = RISK_LEVELS[baa_level]
+    print("Risk info:", risk_info)  # Debug print
+    
+    return jsonify({
+        'risk_level': baa_level,
+        'status': risk_info['status'],
+        'description': risk_info['description']
+    })
 
 @app.route('/chat', methods=['POST'])
 def chat():
