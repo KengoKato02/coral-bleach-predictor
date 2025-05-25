@@ -14,6 +14,7 @@ setup(
         "seaborn",
         "scikit-learn",
         "statsmodels",
+
     ],
     classifiers=[              
         "Programming Language :: Python :: 3",
