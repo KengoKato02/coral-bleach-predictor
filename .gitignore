@@ -1,0 +1,16 @@
+data/noaa/raw_data
+data/noaa/pulled_data/
+data/noaa/.DS_Store
+data/bco_dmo/raw_data
+
+/env
+.env
+
+*.pyc
+__pycache__/
+
+*.pkl
+src/models/scaler.pkl
+src/models/coral_bleaching_predictor.pkl
+
+coral_bleach_predictor.egg-info
