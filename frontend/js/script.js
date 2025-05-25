@@ -254,13 +254,26 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
 
         // Get values from form
+        const region = form.querySelector('#regionSelect').value;
+        const date = form.querySelector('#dateSelect').value;
         const minSST = parseFloat(form.querySelector('input[placeholder="Enter minimum temperature"]').value);
         const maxSST = parseFloat(form.querySelector('input[placeholder="Enter maximum temperature"]').value);
         const hotspotSST = parseFloat(form.querySelector('input[placeholder="Enter hotspot temperature"]').value);
         const anomalySST = parseFloat(form.querySelector('input[placeholder="Enter temperature anomaly"]').value);
+        const dhwValue = parseFloat(form.querySelector('input[placeholder="Enter DHW value"]').value);
 
         // Validate inputs
-        if (isNaN(minSST) || isNaN(maxSST) || isNaN(hotspotSST) || isNaN(anomalySST)) {
+        if (!region) {
+            alert('Please select a region');
+            return;
+        }
+
+        if (!date) {
+            alert('Please select a date');
+            return;
+        }
+
+        if (isNaN(minSST) || isNaN(maxSST) || isNaN(hotspotSST) || isNaN(anomalySST) || isNaN(dhwValue)) {
             alert('Please fill in all temperature values with valid numbers');
             return;
         }
@@ -269,7 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Show loading state
             predictButton.disabled = true;
             predictButton.textContent = 'Analyzing...';
-
+            
             // Call backend API
             const response = await fetch('http://localhost:8000/predict', {
                 method: 'POST',
@@ -277,10 +290,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
+                    region: region,
+                    date: date,
                     min_sst: minSST,
                     max_sst: maxSST,
                     hotspot_sst: hotspotSST,
-                    sst_anomaly: anomalySST
+                    sst_anomaly: anomalySST,
+                    dhw_90th: dhwValue
                 })
             });
 
@@ -289,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const data = await response.json();
-
+            
             // Update UI with prediction
             riskNumber.textContent = data.baa_level;
             riskStatus.textContent = data.risk_status;
@@ -297,7 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Update all risk-related colors
             updateRiskColors(data.baa_level);
-
+            
             // Show the output section
             outputSection.style.visibility = 'visible';
             outputSection.style.opacity = '1';

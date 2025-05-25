@@ -3,12 +3,34 @@ from flask_cors import CORS
 import requests
 import re
 import json
+from datetime import datetime
 
 # Configuration constants
 LLAMA_API_URL = "http://localhost:11434/api/chat"
 LLM_MODEL = "llama3.1"
 TEMPERATURE_RANGE = (-5, 40)  # Typical range for ocean temperatures in °C
-REQUIRED_FIELDS = ['min_sst', 'max_sst', 'hotspot_sst', 'sst_anomaly']
+DHW_RANGE = (0, 20)  # Typical range for Degree Heating Weeks
+REQUIRED_FIELDS = ['region', 'date', 'min_sst', 'max_sst', 'hotspot_sst', 'sst_anomaly', 'dhw_90th']
+
+# Region-specific information
+REGION_INFO = {
+    'Caribbean': {
+        'bleaching_threshold': 30.0,
+        'typical_range': (24, 32)
+    },
+    'Great Barrier Reef': {
+        'bleaching_threshold': 29.0,
+        'typical_range': (22, 30)
+    },
+    'Polynesia': {
+        'bleaching_threshold': 30.5,
+        'typical_range': (25, 32)
+    },
+    'South Asia': {
+        'bleaching_threshold': 31.0,
+        'typical_range': (26, 33)
+    }
+}
 
 app = Flask(__name__, static_folder='../../frontend', static_url_path='')
 CORS(app)
@@ -48,16 +70,34 @@ def validate_temperature_data(data):
             'required_fields': REQUIRED_FIELDS
         }, 400
 
+    if data['region'] not in REGION_INFO:
+        return {
+            'error': 'Invalid region',
+            'valid_regions': list(REGION_INFO.keys())
+        }, 400
+
     try:
-        for field in REQUIRED_FIELDS:
+        # Validate date format
+        datetime.strptime(data['date'], '%Y-%m-%d')
+        
+        # Validate temperature values
+        for field in ['min_sst', 'max_sst', 'hotspot_sst', 'sst_anomaly']:
             data[field] = float(data[field])
             if not TEMPERATURE_RANGE[0] <= data[field] <= TEMPERATURE_RANGE[1]:
                 return {
                     'error': f'Invalid value for {field}. Must be between {TEMPERATURE_RANGE[0]}°C and {TEMPERATURE_RANGE[1]}°C'
                 }, 400
-    except ValueError:
+        
+        # Validate DHW
+        data['dhw_90th'] = float(data['dhw_90th'])
+        if not DHW_RANGE[0] <= data['dhw_90th'] <= DHW_RANGE[1]:
+            return {
+                'error': f'Invalid value for DHW. Must be between {DHW_RANGE[0]} and {DHW_RANGE[1]}'
+            }, 400
+
+    except ValueError as e:
         return {
-            'error': 'All temperature values must be numbers'
+            'error': f'Invalid value format: {str(e)}'
         }, 400
 
     return None
@@ -65,6 +105,7 @@ def validate_temperature_data(data):
 def get_llama_prediction(data):
     """Get prediction from the model"""
     try:
+        region_info = REGION_INFO[data['region']]
         response = requests.post(
             LLAMA_API_URL,
             json={
@@ -72,11 +113,19 @@ def get_llama_prediction(data):
                 "messages": [
                     {
                         "role": "system",
-                        "content": "You are a coral reef monitoring system. Always respond with ONLY a single number (0-4) representing the BAA level. No explanation needed."
+                        "content": f"""You are a coral reef monitoring system for the {data['region']} region. 
+                        The bleaching threshold for this region is {region_info['bleaching_threshold']}°C, 
+                        with typical temperature range of {region_info['typical_range'][0]}-{region_info['typical_range'][1]}°C.
+                        Always respond with ONLY a single number (0-4) representing the BAA level. No explanation needed."""
                     },
                     {
                         "role": "user",
-                        "content": f"SST values: MIN={data['min_sst']}, MAX={data['max_sst']}, HOTSPOT={data['hotspot_sst']}, ANOMALY={data['sst_anomaly']}. Predict BAA (0=No Stress, 1=Watch, 2=Warning, 3=Alert1, 4=Alert2). Respond with ONLY the number."
+                        "content": f"""Date: {data['date']}
+                        SST values: MIN={data['min_sst']}, MAX={data['max_sst']}, 
+                        HOTSPOT={data['hotspot_sst']}, ANOMALY={data['sst_anomaly']}, 
+                        DHW={data['dhw_90th']}
+                        Predict BAA (0-4). 
+                        Respond with ONLY the number."""
                     }
                 ],
                 "stream": False,
@@ -286,7 +335,7 @@ def init_chat():
                                 5. Add the description
                                 6. End with a short question about how you can help
 
-                                DO NOT add any additional text, quotes, or commentary about the greeting itself. Start directly with "Hello!"."""
+DO NOT add any additional text, quotes, or commentary about the greeting itself. Start directly with "Hello!"."""
                             },
                             {
                                 "role": "user",

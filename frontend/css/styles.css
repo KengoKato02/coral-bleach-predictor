@@ -70,9 +70,15 @@ body::before {
 .hero-content {
     max-width: 35rem;
 }
+@media screen and (max-width: 1550px) {
+    .hero-content {
+        margin-left: 3rem;
+    }
+}
 
 .hero-text {
-    margin-top: 7rem;
+    margin-top: 2rem;
+    margin-bottom: 4rem;
 }
 
 .hero-text h1 {
@@ -92,6 +98,7 @@ body::before {
     display: flex;
     gap: 3rem;
     margin-top: 4rem;
+    margin-bottom: 2rem;
 }
 
 .stat-item h2 {
@@ -106,12 +113,36 @@ body::before {
     max-width: 8rem;
 }
 
+.model-selector label {
+    font-size: 1.125rem;
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+.model-selector .input-description {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 0.75rem;
+}
+
+.model-selector .input-field {
+    width: 50%;
+    height: 3.25rem;
+    border-radius: 0.625rem;
+    border: 1px solid rgba(255, 255, 255, 0.30);
+    background: rgba(255, 255, 255, 0.50);
+    backdrop-filter: blur(5px);
+    padding: 0 1rem;
+    font-size: 1rem;
+    color: #2C3E50;
+}
+
 .analysis-form {
     border-radius: 1.5625rem;
     border: 1px solid rgba(255, 255, 255, 0.20);
     background: rgba(255, 255, 255, 0.12);
     backdrop-filter: blur(8.5px);
-    width: 42.3125rem;
+    width: 52rem;
     height: 50rem;
     padding: 3rem 2.5rem 2.5rem 2.5rem;
     color: #ffffff;
@@ -123,49 +154,37 @@ body::before {
     font-weight: 700;
     line-height: 1.3;
     margin-bottom: 3rem;
-    max-width: 35rem;
     text-align: center;
-
+    width: 100%;
 }
 
-.model-selector {
-    margin-bottom: 3rem;
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
 }
 
-.model-selector label {
-    display: block;
-    font-size: 1.125rem;
-    margin-bottom: 0.5rem;
-}
-
-.temperature-inputs {
+.form-column {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
-    margin-bottom: 3rem;
-}
-
-.input-row {
-    display: flex;
-    gap: 2.1875rem;
+    gap: 1.5rem;
 }
 
 .input-group {
-    flex: 1;
+    min-height: 7.5rem;
     display: flex;
     flex-direction: column;
 }
 
 .input-group label {
-    display: block;
     font-size: 1.125rem;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
 }
 
 .input-description {
     font-size: 0.875rem;
     color: rgba(255, 255, 255, 0.8);
-    margin-bottom: auto;
+    margin-bottom: 0.5rem;
 }
 
 .input-field {
@@ -178,27 +197,28 @@ body::before {
     padding: 0 1rem;
     font-size: 1rem;
     color: #2C3E50;
-    margin-top: 0.5rem;
+    margin-top: auto;
 }
 
 .input-field::placeholder {
     color: rgba(44, 62, 80, 0.6);
 }
 
+
+
 .predict-button {
-    width: 17.4375rem;
+    width: 100%;
     height: 3.25rem;
     border-radius: 0.625rem;
     background: #BB4A61;
-    border: none;
+    border: 1px solid rgba(255, 255, 255, 0.30);
     color: #ffffff;
     font-size: 0.875rem;
     cursor: pointer;
     transition: background-color 0.2s ease;
     box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-    position: absolute;
-    right: 2.5rem;
-    bottom: 1.5rem;
+    padding: 0 1rem;
+    margin-top: auto;
 }
 
 .predict-button:hover {

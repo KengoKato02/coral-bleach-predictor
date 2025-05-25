@@ -32,45 +32,76 @@
                         <p>Marine species depend on coral reefs</p>
                     </div>
                 </div>
+
+                <div class="model-selector">
+                    <label>Select AI Model</label>
+                    <p class="input-description">Choose the model for analysis</p>
+                    <select class="input-field" id="modelSelect">
+                        <option value="">Choose model...</option>
+                        <option value="llama3.1">Part 1</option>
+                        <option value="gpt4">LLaMA 3.1</option>
+                    </select>
+                </div>
             </div>
 
             <div class="analysis-form">
                 <h2>Analyze temperature data to assess coral bleaching risk levels</h2>
                 
-                <div class="model-selector">
-                    <label>Select one of our AI models</label>
-                    <input type="text" placeholder="Choose model..." class="input-field">
-                </div>
+                <div class="form-grid">
+                    <div class="form-column">
+                        <div class="input-group">
+                            <label>Select Region</label>
+                            <p class="input-description">Geographic area for analysis</p>
+                            <select class="input-field" id="regionSelect">
+                                <option value="">Choose region...</option>
+                                <option value="Caribbean">Caribbean</option>
+                                <option value="Great Barrier Reef">Great Barrier Reef</option>
+                                <option value="Polynesia">Polynesia</option>
+                                <option value="South Asia">South Asia</option>
+                            </select>
+                        </div>
 
-                <div class="temperature-inputs">
-                    <div class="input-row">
                         <div class="input-group">
                             <label>Minimum Sea Surface Temperature (°C)</label>
                             <p class="input-description">Daily minimum temperature in the monitoring region</p>
                             <input type="number" class="input-field" placeholder="Enter minimum temperature">
                         </div>
+
+                        <div class="input-group">
+                            <label>SST at 90th Percentile Hotspot (°C)</label>
+                            <p class="input-description">Temperature at the most thermally-stressed location</p>
+                            <input type="number" class="input-field" placeholder="Enter hotspot temperature">
+                        </div>
+
+                        <div class="input-group">
+                            <label>Degree Heating Weeks from 90th Percentile</label>
+                            <p class="input-description">Accumulated heat stress over past 12 weeks</p>
+                            <input type="number" class="input-field" placeholder="Enter DHW value">
+                        </div>
+                    </div>
+
+                    <div class="form-column">
+                        <div class="input-group">
+                            <label>Select Date</label>
+                            <p class="input-description">Date of temperature measurements</p>
+                            <input type="date" class="input-field" id="dateSelect">
+                        </div>
+
                         <div class="input-group">
                             <label>Maximum Sea Surface Temperature (°C)</label>
                             <p class="input-description">Daily maximum temperature in the monitoring region</p>
                             <input type="number" class="input-field" placeholder="Enter maximum temperature">
                         </div>
-                    </div>
 
-                    <div class="input-row">
-                        <div class="input-group">
-                            <label>SST at 90th Percentile Hotspot (°C)</label>
-                            <p class="input-description">Temperature at the most thermally-stressed location within the region</p>
-                            <input type="number" class="input-field" placeholder="Enter hotspot temperature">
-                        </div>
                         <div class="input-group">
                             <label>SST Anomaly at 90th Percentile (°C)</label>
-                            <p class="input-description">How much hotter (+) or cooler (-) than the long-term average for this location and season</p>
+                            <p class="input-description">How much hotter (+) or cooler (-) than average</p>
                             <input type="number" class="input-field" placeholder="Enter temperature anomaly">
                         </div>
+
+                        <button class="predict-button">PREDICT BLEACHING RISK</button>
                     </div>
                 </div>
-
-                <button class="predict-button">PREDICT BLEACHING RISK</button>
             </div>
         </div>
 
