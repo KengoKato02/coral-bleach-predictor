@@ -197,21 +197,31 @@ def chat():
 
         def generate():
             try:
+                # Prepare messages list with system prompt and history
+                messages = [
+                    {
+                        "role": "system",
+                        "content": """You are a coral reef monitoring assistant. You help users understand coral bleaching risks, 
+                        interpret temperature data, and provide recommendations for coral reef protection. You have access to the 
+                        conversation history and can reference previous temperature data and risk assessments. Be concise but informative."""
+                    }
+                ]
+                
+                # Add conversation history if provided
+                if 'history' in data:
+                    messages.extend(data['history'])
+                
+                # Add current user message
+                messages.append({
+                    "role": "user",
+                    "content": data['message']
+                })
+
                 response = requests.post(
                     LLAMA_API_URL,
                     json={
                         "model": LLM_MODEL,
-                        "messages": [
-                            {
-                                "role": "system",
-                                "content": """You are a coral reef monitoring assistant. You help users understand coral bleaching risks, 
-                                interpret temperature data, and provide recommendations for coral reef protection. Be concise but informative."""
-                            },
-                            {
-                                "role": "user",
-                                "content": data['message']
-                            }
-                        ],
+                        "messages": messages,
                         "stream": True,
                         "temperature": 0.7
                     },

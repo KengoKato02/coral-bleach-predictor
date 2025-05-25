@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const riskStatus = document.querySelector('.risk-status');
     const riskDescription = document.querySelector('.risk-description');
     const assistanceTitle = document.querySelector('.assistance-title');
-    
+
     // Chat elements
     const chatMessages = document.getElementById('chatMessages');
     const chatInput = document.getElementById('chatInput');
@@ -34,13 +34,20 @@ document.addEventListener('DOMContentLoaded', () => {
         outputSection.style.setProperty('--risk-color', color);
     };
 
+    // Function to parse markdown-like formatting
+    const parseMarkdown = (text) => {
+        return text
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')  // Bold text
+            .replace(/\n/g, '<br>');  // Line breaks
+    };
+
     // Function to create and append a message to the chat
     const appendMessage = (text, isUser = false) => {
         const messageDiv = document.createElement('div');
         messageDiv.className = `chat-message ${isUser ? 'user-message' : 'ai-message'}`;
         messageDiv.innerHTML = `
             <div class="message-content">
-                <span class="message-text">${text}</span>
+                <span class="message-text">${parseMarkdown(text)}</span>
             </div>
         `;
         chatMessages.appendChild(messageDiv);
@@ -120,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                             if (data.content) {
                                 fullResponse += data.content;
-                                aiMessageText.textContent = fullResponse;
+                                aiMessageText.innerHTML = parseMarkdown(fullResponse);
                                 chatMessages.scrollTop = chatMessages.scrollHeight;
                             }
                         } catch (e) {
@@ -146,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Event listeners for chat
     chatActionButton.addEventListener('click', handleChatAction);
-    
+
     chatInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -155,11 +162,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Connect "Ask AI Assistant" button to chat
-    aiButton.addEventListener('click', () => {
-        chatInput.focus();
+    aiButton.addEventListener('click', async () => {
+        // Get all form values
+        const minSST = form.querySelector('input[placeholder="Enter minimum temperature"]').value;
+        const maxSST = form.querySelector('input[placeholder="Enter maximum temperature"]').value;
+        const hotspotSST = form.querySelector('input[placeholder="Enter hotspot temperature"]').value;
+        const anomalySST = form.querySelector('input[placeholder="Enter temperature anomaly"]').value;
+
+        // Get current risk
         const currentRisk = riskStatus.textContent;
         const currentDescription = riskDescription.textContent;
-        chatInput.value = `Can you explain more about the "${currentRisk}" status? The system says: "${currentDescription}"`;
+        const riskLevel = riskNumber.textContent;
+
+        // Construct initial greeting message
+        const initialMessage = `Hello! I am your AI coral reef assistant. I see you've provided the following temperature data:\n\n• Minimum Temperature: ${minSST}°C\n• Maximum Temperature: ${maxSST}°C\n• Hotspot Temperature: ${hotspotSST}°C\n• Temperature Anomaly: ${anomalySST}°C\n\nBased on this data, I've determined a Risk Level ${riskLevel} - "**${currentRisk}**". This means: ${currentDescription}\n\nHow can I help you understand this assessment better?`;
+
+        // Send the initial message
+        appendMessage(initialMessage, false);
+
+        // Focus the chat input for user's response
+        chatInput.focus();
     });
 
     predictButton.addEventListener('click', async (e) => {
@@ -181,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Show loading state
             predictButton.disabled = true;
             predictButton.textContent = 'Analyzing...';
-            
+
             // Call backend API
             const response = await fetch('http://localhost:8000/predict', {
                 method: 'POST',
@@ -201,7 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const data = await response.json();
-            
+
             // Update UI with prediction
             riskNumber.textContent = data.baa_level;
             riskStatus.textContent = data.risk_status;
@@ -209,7 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Update all risk-related colors
             updateRiskColors(data.baa_level);
-            
+
             // Show the output section
             outputSection.style.visibility = 'visible';
             outputSection.style.opacity = '1';
