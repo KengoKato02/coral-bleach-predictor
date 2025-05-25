@@ -10,6 +10,7 @@ data/bco_dmo/raw_data
 *.pyc
 __pycache__/
 
-
+src/models/coral_bleaching_predictor.pkl
+src/models/scaler.pkl
 
 coral_bleach_predictor.egg-info
