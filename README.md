@@ -97,4 +97,8 @@ and use interactive chat powered by **LLaMA 3.1**, capable of answering question
   - Confirm ports `8000` and `11434` are open.
   - Ensure LLaMA 3.1 is fully loaded before sending requests.
 
+- Notebook Notes Before Running:
+  - Please make sure to create a virtual env and attach in the notebook kernel
+  - Run ```pip install -e .``` from the root of the repo
+
 ---
