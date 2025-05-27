@@ -3,7 +3,7 @@
 We have developed a Coral Bleaching Predictor based on the NOAA Coral Reef Watch Virtual Station dataset. Our model uses seven key parameters as inputs: region selection (Caribbean, Great Barrier Reef, Polynesia, South Asia), date (YYYY-MM-DD format), minimum and maximum sea surface temperature (SST_MIN, SST_MAX), SST at 90th percentile hotspot (SST@90th_HS), SST anomaly at 90th percentile (SSTA@90th_HS), and Degree Heating Weeks from 90th percentile (DHW_90th). The model outputs predictions on the Bleaching Alert Area (BAA) scale from levels 0-4, corresponding to No Stress, Bleaching Watch, Bleaching Warning, Alert Level 1, and Alert Level 2.
 Our application combines our custom-trained model with Llama 3.1. The architecture works as follows: users input comprehensive coral monitoring data (region, date, SST_MIN, SST_MAX, SST@90th_HS, SSTA@90th_HS, DHW_90th), which gets processed by either our custom ML model or Llama 3.1 (selectable via dropdown) to produce a coral bleaching alert level from 0 to 4. Users receive the prediction result along with a brief description of what that alert level means. If users want more detailed analysis, they can choose to interact with our AI assistant (Llama 3.1), which provides comprehensive explanations, recommendations, and can answer follow-up questions about the specific prediction and input parameters.
 
-![Screenshot 2025-05-26 at 09.34.58.png](Coral%20Bleaching%20Predictor%20Application%201fe5e8ecefd880f8a183da9799ca6439/Screenshot_2025-05-26_at_09.34.58.png)
+![app_architecture.png](app_architecture.png)
 
 The core idea behind this approach is that we're using the LLM as an optional intelligent interface that users can engage with when they want a deeper analysis of their predictions. This gives us the precision of a domain-specific model combined with the natural language capabilities of modern AI systems.
 
@@ -17,7 +17,7 @@ Llama 3.1 offers excellent hardware efficiency, with the 8B parameter model runn
 
 Mistral 7B is a capable model, but it has several limitations for our use case. Its shorter context window could potentially be insufficient for the coral data analysis we need, and in our testing, we found it less consistent in scientific reasoning tasks. Additionally, Mistral's mathematical reasoning benchmarks are generally lower than Llama 3.1's performance.
 
-![Screenshot 2025-05-25 at 12.02.27.png](Coral%20Bleaching%20Predictor%20Application%201fe5e8ecefd880f8a183da9799ca6439/Screenshot_2025-05-25_at_12.02.27.png)
+![benchmark.png](benchmark.png)
 
 ## Set up for Llama 3.1
 
