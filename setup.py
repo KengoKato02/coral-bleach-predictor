@@ -14,7 +14,9 @@ setup(
         "seaborn",
         "scikit-learn",
         "statsmodels",
-
+        "xgboost",
+        "scipy",
+        "joblib"
     ],
     classifiers=[              
         "Programming Language :: Python :: 3",
