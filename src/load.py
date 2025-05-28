@@ -19,7 +19,7 @@ def load_noaa_data(file_path):
     
 # i think this needs to be done in a better way
 def load_noaa_station_data(url):
-    response = requests.get(url)#
+    response = requests.get(url)
 
     lat = None
     lon = None
